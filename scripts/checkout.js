@@ -39,7 +39,7 @@ cart.forEach((cartItem) => {
                     <span class="update-quantity-link link-primary js-update-quantity-link" data-product-id="${matchingProduct.id}">
                     Update
                     </span>
-                    <input class="quantity-input js-quantity-input-${matchingProduct.id}">
+                    <input class="quantity-input js-quantity-input-${matchingProduct.id}" data-product-id="${matchingProduct.id}">
                     <span class="save-quantity-link link-primary js-save-quantity-link" data-product-id="${matchingProduct.id}">
                     Save
                     </span>
@@ -121,16 +121,30 @@ document.querySelectorAll('.js-update-quantity-link').forEach((link) =>{
     });
 });
 
-document.querySelectorAll(".js-save-quantity-link").forEach((link) =>{
-    link.addEventListener("click", () => {
-        const productId = link.dataset.productId;
-        const container = document.querySelector(`.js-cart-item-container-${productId}`);
-        container.classList.remove("is-editing-quantity");
+function ChangeQuantity(link){
+    const productId = link.dataset.productId;
+    const container = document.querySelector(`.js-cart-item-container-${productId}`);
+    container.classList.remove("is-editing-quantity");
 
-        const newQuantity = Number(document.querySelector(`.js-quantity-input-${productId}`).value);
+    const newQuantity = Number(document.querySelector(`.js-quantity-input-${productId}`).value);
+    if(newQuantity >0 && newQuantity < 1000){
         updateQuantity(productId, newQuantity);
         document.querySelector(`.js-quantity-label-${productId}`).innerHTML = newQuantity;
         document.querySelector('.js-return-to-home-link').innerHTML = `${updateCartQuantity()} items`;
+    }
+}
+
+document.querySelectorAll(".js-save-quantity-link").forEach((link) =>{
+    link.addEventListener("click", () => {
+        ChangeQuantity(link);
+    });
+});
+
+document.querySelectorAll(".quantity-input").forEach((link) => {
+    link.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+            ChangeQuantity(link);
+        }
     });
 });
 
