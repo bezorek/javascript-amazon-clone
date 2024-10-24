@@ -32,6 +32,30 @@
   align-items: start;
 }
 
+.quantity-input{
+  display: none;
+  width: 30px;
+  border: 1px solid grey;
+  border-radius: 4px;
+}
+.save-quantity-link{
+  display: none;
+}
+
+.is-editing-quantity{
+  .quantity-input,
+  .save-quantity-link{
+    display: initial;
+  }
+}
+
+.is-editing-quantity{
+  .update-quantity-link,
+  .quantity-label{
+    display: none;
+  }
+}
+
 @media (max-width: 1000px) {
   .main {
     max-width: 500px;
