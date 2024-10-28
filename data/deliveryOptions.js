@@ -41,4 +41,6 @@ function isWeekend(date) {
         remainingDays--;
       }
     }
+    const dateString = deliveryDate.format('dddd, MMMM D');
+    return dateString;
 }

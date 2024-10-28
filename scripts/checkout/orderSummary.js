@@ -118,15 +118,15 @@ export function renderOrderSummary(){
         const newQuantity = Number(document.querySelector(`.js-quantity-input-${productId}`).value);
         if(newQuantity >0 && newQuantity < 1000){
             updateQuantity(productId, newQuantity);
-            document.querySelector(`.js-quantity-label-${productId}`).innerHTML = newQuantity;
-            document.querySelector('.js-return-to-home-link').innerHTML = `${updateCartQuantity()} items`;
+            renderCheckoutHeader();
+            renderOrderSummary();
+            renderPaymentSummary();
         }
     }
 
     document.querySelectorAll(".js-save-quantity-link").forEach((link) =>{
         link.addEventListener("click", () => {
             ChangeQuantity(link);
-            renderPaymentSummary();
         });
     }); 
 
@@ -134,7 +134,6 @@ export function renderOrderSummary(){
         link.addEventListener("keydown", (event) => {
             if (event.key === "Enter") {
                 ChangeQuantity(link);
-                renderPaymentSummary();
             }
         });
     });
