@@ -80,15 +80,18 @@ export function updateQuantity(productId, newQuantity){
 }
 
 export function updateDeliveryOption(productId, deliveryOptionId){
+    if(deliveryOptionId !== '1' && deliveryOptionId !== '2' && deliveryOptionId !== '3'){
+        return;
+    }
     let matchingItem;
 
     cart.forEach((cartItem) => {
         if (productId === cartItem.productId){
             matchingItem = cartItem;
         }
-    }); 
-
-    matchingItem.deliveryOptionId = deliveryOptionId;
-
-    saveToStorage();
+    });
+    if(matchingItem){
+        matchingItem.deliveryOptionId = deliveryOptionId;
+        saveToStorage();
+    }
 }
