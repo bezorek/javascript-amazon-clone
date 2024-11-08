@@ -100,6 +100,17 @@ class Cart{
         this.updateCartQuantity();
         this.saveToStorage();
     }
+
+    async loadCartFetch(){
+        try{
+            const response = await fetch('https://supersimplebackend.dev/cart');
+            const data = await response.text();
+            console.log(data);
+        }catch(error){
+
+        }
+    }
+
 }
 
 export const cart = new Cart('cart');
