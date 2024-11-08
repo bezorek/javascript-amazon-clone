@@ -13,7 +13,7 @@ describe('test suite: addToCart' , () => {
             deliveryOptionId: '1'
         }];
 
-        cart.addToCart('e43638ce-6aa0-4b85-b27f-e1d07eb678c6');
+        cart.addToCart('e43638ce-6aa0-4b85-b27f-e1d07eb678c6', 1);
         expect(cart.cartItems.length).toEqual(1);
         expect(localStorage.setItem).toHaveBeenCalledTimes(1);
         expect(localStorage.setItem).toHaveBeenCalledWith('cart', JSON.stringify([{
@@ -28,7 +28,7 @@ describe('test suite: addToCart' , () => {
     it('adds a new product to the cart', () => {
         cart.cartItems = [];
 
-        cart.addToCart('e43638ce-6aa0-4b85-b27f-e1d07eb678c6');
+        cart.addToCart('e43638ce-6aa0-4b85-b27f-e1d07eb678c6', 1);
         expect(cart.cartItems.length).toEqual(1);
         expect(localStorage.setItem).toHaveBeenCalledTimes(1);
         expect(localStorage.setItem).toHaveBeenCalledWith('cart', JSON.stringify([{
