@@ -8,7 +8,7 @@ import { cart } from '../../data/cart-class.js';
 
 export function renderOrderSummary(){  
     let cartSummaryHTML = '';
-
+    console.log(cart);
     cart.cartItems.forEach((cartItem) => {
         const productId = cartItem.productId;
 

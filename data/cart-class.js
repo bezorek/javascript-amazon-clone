@@ -36,11 +36,11 @@ class Cart{
         });
         
         if (matchingItem){
-            matchingItem.quantity += selectedValue;
+            matchingItem.quantity += Number(selectedValue);
         }else{
             this.cartItems.push({
                 productId: productId,
-                quantity: selectedValue,
+                quantity: Number(selectedValue),
                 deliveryOptionId: '1'
             });
         }
