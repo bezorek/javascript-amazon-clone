@@ -60,6 +60,11 @@ class Cart{
         this.saveToStorage();
     }
 
+    resetCart(){
+        this.cartItems = [];
+        this.saveToStorage();
+    }
+
     updateDeliveryOption(productId, deliveryOptionId){
         if(deliveryOptionId !== '1' && deliveryOptionId !== '2' && deliveryOptionId !== '3'){
             return;

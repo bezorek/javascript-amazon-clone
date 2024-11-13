@@ -8,7 +8,12 @@ import { cart } from '../../data/cart-class.js';
 
 export function renderOrderSummary(){  
     let cartSummaryHTML = '';
-    console.log(cart);
+    if(cart.cartItems.length === 0){
+        cartSummaryHTML += `
+        Your cart is empty.
+        <button> View products </button>
+        `
+    }
     cart.cartItems.forEach((cartItem) => {
         const productId = cartItem.productId;
 
