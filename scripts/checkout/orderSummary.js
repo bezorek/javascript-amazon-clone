@@ -11,7 +11,7 @@ export function renderOrderSummary(){
     if(cart.cartItems.length === 0){
         cartSummaryHTML += `
         Your cart is empty.
-        <button> View products </button>
+        <button class="button-primary view-products-button js-view-products-button"> View products </button>
         `
     }
     cart.cartItems.forEach((cartItem) => {
@@ -152,4 +152,10 @@ export function renderOrderSummary(){
             renderPaymentSummary();
         })
     });
+
+    document.querySelectorAll(".js-view-products-button").forEach((element) => { //dziala ale tylko dla querySelectorAll, powinienem jakos zabezpieczyć czy button jest wygenerownay w html 
+        element.addEventListener("click", () => {
+            window.location.href = 'amazon.html';
+        });    
+    })
 }

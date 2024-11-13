@@ -160,3 +160,27 @@ export function loadProducts(fun){
   xhr.open('GET', "https://supersimplebackend.dev/products");
   xhr.send();
 }
+
+export function filterProducts(){
+  const url = new URL(window.location.href);
+  const search = url.searchParams.get('search');
+
+    let filteredProducts = products;
+
+    if(search){
+        filteredProducts = products.filter((product) =>{ // funkcja filtruje gdy zwracany jest true 
+
+            let matchingKeyword = false;
+            product.keywords.forEach((keyword) => {
+                if(keyword.toLowerCase().includes(search.toLowerCase())){
+                    matchingKeyword = true;
+                }
+            });
+
+            return matchingKeyword || product.name.toLowerCase().includes(search.toLowerCase());
+
+        });
+    }
+
+    return filteredProducts;
+}
