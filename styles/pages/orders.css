@@ -56,6 +56,49 @@
   flex-shrink: 1;
 }
 
+.return-modal{
+  padding: 20px;
+  border-radius: 10px;
+  width: 500px;
+  border: 1px solid rgb(170, 170, 170);
+  text-align: center;
+}
+
+/* Container inside the dialog */
+.modal-container {
+  display: inline-block; /* This makes content centered horizontally */
+  text-align: center;
+}
+
+/* Style the text span */
+.modal-container span {
+  font-size: 1.2rem;
+  display: block; /* Ensures the text occupies its own row */
+  margin-bottom: 20px; /* Space below the text */
+}
+
+/* Flex container for the buttons */
+.return-modal-buttons {
+  display: flex;
+  justify-content: center; /* Center the buttons horizontally */
+  gap: 40px; /* Space between the buttons */
+}
+
+/* Style for the buttons */
+.modal-button {
+  padding: 10px 20px;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.return-order-container::backdrop{
+  background-color: rgba(100, 100, 100, 0.3);
+}
+
+.no-scroll{
+  overflow: hidden;
+}
+
 @media (max-width: 575px) {
   .order-header {
     flex-direction: column;
@@ -153,12 +196,15 @@
 
 .product-actions {
   align-self: start;
+  display: grid;
+  gap: 16px;
 }
 
-.track-package-button {
+.track-package-button, .return-product-button {
   width: 100%;
   font-size: 15px;
   padding: 8px;
+  
 }
 
 @media (max-width: 800px) {
@@ -174,9 +220,10 @@
        this default ordering). */
     grid-column: 2;
     margin-bottom: 30px;
+    gap: 10px;
   }
 
-  .track-package-button {
+  .track-package-button , .return-product-button{
     width: 140px;
   }
 }
@@ -213,7 +260,7 @@
     margin-bottom: 70px;
   }
 
-  .track-package-button {
+  .track-package-button, .return-product-button {
     width: 100%;
     padding: 12px;
   }

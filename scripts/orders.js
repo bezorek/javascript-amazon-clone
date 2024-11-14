@@ -1,4 +1,4 @@
-import { orders } from "../data/orders.js"
+import { orders, removeProductFromOrder } from "../data/orders.js"
 import { getProduct, loadProductsFetch } from "../data/products.js";
 import formatCurrency from "./utils/money.js";
 import dayjs from 'https://unpkg.com/dayjs@1.11.10/esm/index.js';
@@ -6,7 +6,7 @@ import { cart } from "../data/cart-class.js";
 
 export async function renderPlacedOrderSummary(){
    await loadProductsFetch();
-
+   console.log(orders);
    let orderSummaryHTML = '';
 
    orders.forEach((order) => {
@@ -72,6 +72,18 @@ export async function renderPlacedOrderSummary(){
                   Track package
                </button>
             </a>
+               <button class="return-product-button button-secondary js-return-button" data-order-id="${order.id}" data-product-id="${matchingItem.id}">
+                  Return product
+               </button>
+               <dialog class="return-order-container return-modal modal-${order.id}-${matchingItem.id}">
+                  <div class="modal-container">
+                     <span>Do you want to return ${matchingItem.name}?</span>
+                     <div class="return-modal-buttons">
+                        <button class="button-primary modal-button js-confirm-button-${order.id}-${matchingItem.id}">Yes</button>
+                        <button class="button-primary modal-button close-modal-${order.id}-${matchingItem.id}">No</button>
+                     </div>
+                  </div>
+               </dialog>
             </div>
          `;
       });
@@ -101,6 +113,54 @@ export async function renderPlacedOrderSummary(){
       const search = document.querySelector('.js-search-bar').value;
       window.location.href = `amazon.html?search=${search}`;
   });
+
+  //RETURN PRODUCT FUNCTION
+
+  document.querySelectorAll('.js-return-button').forEach((button) =>{
+   button.addEventListener('click', () => { // modal window to return products
+      const orderId = button.dataset.orderId;
+      const productId = button.dataset.productId; 
+
+      const modal = document.querySelector(`.modal-${orderId}-${productId}`);
+      const closeButton = document.querySelector(`.close-modal-${orderId}-${productId}`);
+      const confirmButton = document.querySelector(`.js-confirm-button-${orderId}-${productId}`)
+      modal.showModal();
+      document.body.classList.add('no-scroll');
+
+      closeButton.addEventListener('click', () =>{
+         modal.close();
+         document.body.classList.remove("no-scroll");
+      });
+
+      modal.addEventListener("click", e => {
+         const dialogDimensions = modal.getBoundingClientRect()
+         if (
+           e.clientX < dialogDimensions.left ||
+           e.clientX > dialogDimensions.right ||
+           e.clientY < dialogDimensions.top ||
+           e.clientY > dialogDimensions.bottom
+         ) {
+           modal.close()
+           document.body.classList.remove("no-scroll");
+         }
+       });
+      
+       confirmButton.addEventListener("click", () => {
+         removeProductFromOrder(orderId, productId);
+         modal.close();
+         renderPlacedOrderSummary();
+       });
+   });
+  });
+
+//   document.querySelectorAll('.close-modal').forEach((button) => {
+//    button.addEventListener('click', () => {
+//       const orderId = button.dataset.orderId;
+//       const productId = button.dataset.productId; 
+//       const modal = document.querySelector(`.modal-${orderId}-${productId}`);
+//       modal.close();
+//       });
+//   });
 }
 
 renderPlacedOrderSummary();
