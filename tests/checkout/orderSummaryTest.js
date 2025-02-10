@@ -43,12 +43,18 @@ describe('test suite: renderOrderSummary', () => {
         expect(
             document.querySelectorAll('.js-cart-item-container').length
         ).toEqual(2);
+        // expect(
+        //     document.querySelector(`.js-product-quantity-${productId1}`).innerText
+        // ).toContain('Quantity: 2');
+        // expect(
+        //     document.querySelector(`.js-product-quantity-${productId2}`).innerText
+        // ).toContain('Quantity: 1');
         expect(
-            document.querySelector(`.js-product-quantity-${productId1}`).innerText
-        ).toContain('Quantity: 2');
+            document.querySelector(`.js-quantity-number-${productId1}`).innerHTML
+        ).toContain('2');
         expect(
-            document.querySelector(`.js-product-quantity-${productId2}`).innerText
-        ).toContain('Quantity: 1');
+            document.querySelector(`.js-quantity-number-${productId2}`).innerHTML
+        ).toContain('1');
         expect(
             document.querySelector(`.js-product-name-${productId1}`).innerText
         ).toContain('Black and Gray Athletic Cotton Socks - 6 Pairs');

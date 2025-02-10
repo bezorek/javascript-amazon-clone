@@ -39,7 +39,23 @@ export function renderOrderSummary(){
                     <div class="product-price js-product-price-${matchingProduct.id}">
                         ${matchingProduct.getPrice()}
                     </div>
+                    <div class="delete-quantity-container">
                     <div class="product-quantity js-product-quantity-${matchingProduct.id}">
+                        <div class="quantity-buttons-container">
+                            <button class="decrease-quantity-button js-decrease-button" data-product-id="${matchingProduct.id}">
+                                <div class="js-trash-button-${matchingProduct.id} ${cartItem.quantity === 1 ? 'active' : 'disabled'}">
+                                    <i class="fa-solid fa-trash"></i>
+                                </div>
+                                <div class="js-minus-button-${matchingProduct.id} ${cartItem.quantity !== 1 ? 'active' : 'disabled'}">
+                                    <i class="fa-solid fa-minus"></i>
+                                </div>
+                            </button>
+                            <span class="quantity-number js-quantity-number-${matchingProduct.id}">${cartItem.quantity}</span>
+                            <button class="increase-quantity-button js-increase-button" data-product-id="${matchingProduct.id}">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+<!-- ADDED NEW FEATURE SO THIS ONE I LEGACY
                         <span>
                         Quantity: <span class="quantity-label js-quantity-label-${matchingProduct.id}">${cartItem.quantity}</span>
                         </span>
@@ -50,9 +66,11 @@ export function renderOrderSummary(){
                         <span class="save-quantity-link link-primary js-save-quantity-link" data-product-id="${matchingProduct.id}">
                         Save
                         </span>
+-->
                         <span class="delete-quantity-link link-primary js-delete-link js-delete-link-${matchingProduct.id}" data-product-id="${matchingProduct.id}">
                         Delete
                         </span>
+                    </div>
                     </div>
                     </div>
 
@@ -108,41 +126,41 @@ export function renderOrderSummary(){
         });
     });
 
-    document.querySelectorAll('.js-update-quantity-link').forEach((link) =>{
-        link.addEventListener("click", ()=>{
-            const productId = link.dataset.productId;
-            const container = document.querySelector(`.js-cart-item-container-${productId}`);
-            container.classList.add("is-editing-quantity");
-        });
-    });
+    // document.querySelectorAll('.js-update-quantity-link').forEach((link) =>{
+    //     link.addEventListener("click", ()=>{
+    //         const productId = link.dataset.productId;
+    //         const container = document.querySelector(`.js-cart-item-container-${productId}`);
+    //         container.classList.add("is-editing-quantity");
+    //     });
+    // });
 
-    function ChangeQuantity(link){
-        const productId = link.dataset.productId;
-        const container = document.querySelector(`.js-cart-item-container-${productId}`);
-        container.classList.remove("is-editing-quantity");
+    // function ChangeQuantity(link){
+    //     const productId = link.dataset.productId;
+    //     const container = document.querySelector(`.js-cart-item-container-${productId}`);
+    //     container.classList.remove("is-editing-quantity");
 
-        const newQuantity = Number(document.querySelector(`.js-quantity-input-${productId}`).value);
-        if(newQuantity >0 && newQuantity < 1000){
-            cart.updateQuantity(productId, newQuantity);
-            renderCheckoutHeader();
-            renderOrderSummary();
-            renderPaymentSummary();
-        }
-    }
+    //     const newQuantity = Number(document.querySelector(`.js-quantity-input-${productId}`).value);
+    //     if(newQuantity >0 && newQuantity < 1000){
+    //         cart.updateQuantity(productId, newQuantity);
+    //         renderCheckoutHeader();
+    //         renderOrderSummary();
+    //         renderPaymentSummary();
+    //     }
+    // }
 
-    document.querySelectorAll(".js-save-quantity-link").forEach((link) =>{
-        link.addEventListener("click", () => {
-            ChangeQuantity(link);
-        });
-    }); 
+    // document.querySelectorAll(".js-save-quantity-link").forEach((link) =>{
+    //     link.addEventListener("click", () => {
+    //         ChangeQuantity(link);
+    //     });
+    // }); 
 
-    document.querySelectorAll(".quantity-input").forEach((link) => {
-        link.addEventListener("keydown", (event) => {
-            if (event.key === "Enter") {
-                ChangeQuantity(link);
-            }
-        });
-    });
+    // document.querySelectorAll(".quantity-input").forEach((link) => {
+    //     link.addEventListener("keydown", (event) => {
+    //         if (event.key === "Enter") {
+    //             ChangeQuantity(link);
+    //         }
+    //     });
+    // });
 
     document.querySelectorAll('.js-delivery-option').forEach((element) =>{
         element.addEventListener('click', () => {
@@ -158,4 +176,32 @@ export function renderOrderSummary(){
             window.location.href = 'amazon.html';
         });    
     })
+
+    document.querySelectorAll('.js-increase-button').forEach((button) =>{
+        button.addEventListener("click", () => {
+            const productId = button.dataset.productId;
+            cart.addToCart(productId, 1);
+            renderCheckoutHeader();
+            renderOrderSummary();
+            renderPaymentSummary();
+        });
+    });
+
+    document.querySelectorAll('.js-decrease-button').forEach((button) => {
+        button.addEventListener('click', () => { 
+            const productId = button.dataset.productId;
+            const newQuantity = Number(document.querySelector(`.js-quantity-number-${productId}`).innerHTML)-1;
+            if(newQuantity){
+                cart.updateQuantity(productId, newQuantity)
+                renderCheckoutHeader();
+                renderOrderSummary();
+                renderPaymentSummary();
+            }else{
+                cart.removeFromCart(productId);
+                renderCheckoutHeader();
+                renderOrderSummary();
+                renderPaymentSummary();
+            }
+        });
+    });
 }
