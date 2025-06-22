@@ -1,40 +1,59 @@
-//import {cart, addToCart, updateCartQuantity} from '../data/cart.js';
-import { products, loadProducts, filterProducts } from '../data/products.js';
-import { formatCurrency } from './utils/money.js';
+import { Product, Clothing, Appliance } from '../data/products.js';
 import { cart } from '../data/cart-class.js';
 
-loadProducts(renderProductsGrid);
+window.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const response = await fetch('http://localhost:5000/products');
+        const rawProducts = await response.json();
+        
+        const products = rawProducts.map(data => {
+            const base = {
+                id: data.id,
+                image: data.image,
+                name: data.name,
+                rating: { stars: data.stars },
+                priceCents: Math.round(data.price * 100),
+                keywords: data.keywords
+            };
+        
+            if (data.sizeChartLink) {
+                return new Clothing({ ...base, sizeChartLink: data.sizeChartLink });
+            } else if (data.instructionsLink || data.warrantyLink) {
+                return new Appliance({ ...base, instructionsLink: data.instructionsLink, warrantyLink: data.warrantyLink });
+            } else {
+                return new Product(base);
+            }
+        });
+      
+        const filtered = filterProducts(products);
+        renderProductsGrid(filtered);
+    } catch (err) {
+        console.error('Cannot load products:', err);
+    }
+});
 
-function renderProductsGrid(){
+function filterProducts(products) {
+    const url = new URL(window.location.href);
+    const search = url.searchParams.get('search');
+    if (!search) return products;
+
+    return products.filter(product => {
+        const matchName = product.name.toLowerCase().includes(search.toLowerCase());
+        const matchKeyword = product.keywords?.some(keyword =>
+            keyword.toLowerCase().includes(search.toLowerCase())
+        );
+        return matchName || matchKeyword;
+    });
+}
+
+function renderProductsGrid(products) {
     let productsHTML = '';
 
-    // const url = new URL(window.location.href);
-    // const search = url.searchParams.get('search');
-
-    // let filteredProducts = products;
-
-    // if(search){
-    //     filteredProducts = products.filter((product) =>{ // funkcja filtruje gdy zwracany jest true 
-
-    //         let matchingKeyword = false;
-    //         product.keywords.forEach((keyword) => {
-    //             if(keyword.toLowerCase().includes(search)){
-    //                 matchingKeyword = true;
-    //             }
-    //         });
-
-    //         return matchingKeyword || product.name.toLowerCase().includes(search);
-
-    //     });
-    // }
-    const filteredProducts = filterProducts();
-
-    filteredProducts.forEach((product) => {
+    products.forEach(product => {
         productsHTML += `
             <div class="product-container">
                 <div class="product-image-container">
-                    <img class="product-image"
-                    src="${product.image}">
+                    <img class="product-image" src="${product.image}">
                 </div>
 
                 <div class="product-name limit-text-to-2-lines">
@@ -42,10 +61,9 @@ function renderProductsGrid(){
                 </div>
 
                 <div class="product-rating-container">
-                    <img class="product-rating-stars"
-                    src="${product.getStarsUrl()}">
+                    <img class="product-rating-stars" src="${product.getStarsUrl()}">
                     <div class="product-rating-count link-primary">
-                    ${product.rating.count}
+                        ${product.stars}
                     </div>
                 </div>
 
@@ -54,34 +72,29 @@ function renderProductsGrid(){
                 </div>
 
                 <div class="product-quantity-container">
-                    <select class="js-select-value-${product.id}">
-                    <option selected value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                    <option value="6">6</option>
-                    <option value="7">7</option>
-                    <option value="8">8</option>
-                    <option value="9">9</option>
-                    <option value="10">10</option>
+                    <select class="quantity-select">
+                        <option selected>1</option>
+                        <option>2</option>
+                        <option>3</option>
+                        <option>4</option>
+                        <option>5</option>
                     </select>
                 </div>
-
-                ${product.extraInfoHTML()}
 
                 <div class="product-spacer"></div>
 
                 <div class="added-to-cart">
                     <img src="images/icons/checkmark.png">
-                    Added
+                    Dodano do koszyka
                 </div>
 
                 <button class="add-to-cart-button button-primary js-add-to-cart"
-                data-product-id="${product.id}">
-                    Add to Cart
+                        data-product-id="${product.id}">
+                    Dodaj do koszyka
                 </button>
-                </div>
+
+                ${product.extraInfoHTML()}
+            </div>
         `;
     });
 
@@ -98,7 +111,6 @@ function renderProductsGrid(){
 
     document.querySelector('.js-cart-quantity').innerHTML = cart.updateCartQuantity();
 
-    //document.querySelector('.js-search-bar');
     document.querySelector('.js-search-button').addEventListener('click', () => {
         const search = document.querySelector('.js-search-bar').value;
         window.location.href = `amazon.html?search=${search}`;
