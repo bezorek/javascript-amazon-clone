@@ -1,55 +1,20 @@
-import { Product, Clothing, Appliance } from '../data/products.js';
+import { getProducts, filterProducts } from '../data/products.js';
 import { cart } from '../data/cart-class.js';
 
-window.addEventListener('DOMContentLoaded', async () => {
-    try {
-        const response = await fetch('http://localhost:5000/products');
-        const rawProducts = await response.json();
-        
-        const products = rawProducts.map(data => {
-            const base = {
-                id: data.id,
-                image: data.image,
-                name: data.name,
-                rating: { stars: data.stars },
-                priceCents: Math.round(data.price * 100),
-                keywords: data.keywords
-            };
-        
-            if (data.sizeChartLink) {
-                return new Clothing({ ...base, sizeChartLink: data.sizeChartLink });
-            } else if (data.instructionsLink || data.warrantyLink) {
-                return new Appliance({ ...base, instructionsLink: data.instructionsLink, warrantyLink: data.warrantyLink });
-            } else {
-                return new Product(base);
-            }
-        });
-      
-        const filtered = filterProducts(products);
-        renderProductsGrid(filtered);
-    } catch (err) {
-        console.error('Cannot load products:', err);
-    }
-});
-
-function filterProducts(products) {
-    const url = new URL(window.location.href);
-    const search = url.searchParams.get('search');
-    if (!search) return products;
-
-    return products.filter(product => {
-        const matchName = product.name.toLowerCase().includes(search.toLowerCase());
-        const matchKeyword = product.keywords?.some(keyword =>
-            keyword.toLowerCase().includes(search.toLowerCase())
-        );
-        return matchName || matchKeyword;
-    });
-}
+const products = getProducts();
+renderProductsGrid(filterProducts(products));
 
 function renderProductsGrid(products) {
     let productsHTML = '';
 
     products.forEach(product => {
+        const quantityOptions = Number(product.quantity) > 0
+            ? Array.from({ length: Number(product.quantity) }, (_, i) => `
+                <option${i === 0 ? ' selected' : ''}>${i + 1}</option>
+            `).join('')
+            : '<option disabled selected>Brak</option>';
+
+
         productsHTML += `
             <div class="product-container">
                 <div class="product-image-container">
@@ -60,24 +25,13 @@ function renderProductsGrid(products) {
                     ${product.name}
                 </div>
 
-                <div class="product-rating-container">
-                    <img class="product-rating-stars" src="${product.getStarsUrl()}">
-                    <div class="product-rating-count link-primary">
-                        ${product.stars}
-                    </div>
-                </div>
-
                 <div class="product-price">
                     ${product.getPrice()}
                 </div>
 
                 <div class="product-quantity-container">
-                    <select class="quantity-select">
-                        <option selected>1</option>
-                        <option>2</option>
-                        <option>3</option>
-                        <option>4</option>
-                        <option>5</option>
+                    <select class="quantity-select js-select-value-${product.id}">
+                        ${quantityOptions}
                     </select>
                 </div>
 
@@ -100,10 +54,11 @@ function renderProductsGrid(products) {
 
     document.querySelector('.js-products-grid').innerHTML = productsHTML;
 
-    document.querySelectorAll('.js-add-to-cart').forEach((button) => { //use dataset to find product name after clicking 'add to cart' button 
+    document.querySelectorAll('.js-add-to-cart').forEach((button) => {
         button.addEventListener('click', () => {
             const productId = button.dataset.productId;
-            const selectedValue = Number(document.querySelector(`.js-select-value-${productId}`).value);
+            const select = document.querySelector(`.js-select-value-${productId}`);
+            const selectedValue = Number(select?.value ?? 1);
             cart.addToCart(productId, selectedValue);
             document.querySelector('.js-cart-quantity').innerHTML = cart.updateCartQuantity();
         });
@@ -115,4 +70,11 @@ function renderProductsGrid(products) {
         const search = document.querySelector('.js-search-bar').value;
         window.location.href = `amazon.html?search=${search}`;
     });
+
+    document.querySelector('.js-search-bar').addEventListener('keydown', function (event) {
+    if (event.key === 'Enter') {
+        const search = document.querySelector('.js-search-bar').value;
+        window.location.href = `amazon.html?search=${search}`;
+    }
+});
 }

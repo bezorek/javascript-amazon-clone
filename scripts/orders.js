@@ -1,11 +1,10 @@
 import { orders, removeProductFromOrder } from "../data/orders.js"
-import { getProduct, loadProductsFetch } from "../data/products.js";
+import { getProduct } from "../data/products.js";
 import formatCurrency from "./utils/money.js";
 import dayjs from 'https://unpkg.com/dayjs@1.11.10/esm/index.js';
 import { cart } from "../data/cart-class.js";
 
-export async function renderPlacedOrderSummary(){
-   await loadProductsFetch();
+export function renderPlacedOrderSummary(){
    console.log(orders);
    let orderSummaryHTML = '';
 

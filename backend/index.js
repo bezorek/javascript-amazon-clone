@@ -13,10 +13,11 @@ app.get('/products', async (req, res) => {
     const result = await pool.query('SELECT * FROM product');
     res.json(result.rows);
   } catch (err) {
-    console.error(err.message);
+    console.error('Błąd w /products:', err); // pełna treść błędu
     res.status(500).send('Błąd serwera');
   }
 });
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
