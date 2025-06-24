@@ -1,11 +1,10 @@
-import { loadProductsFetch, getProduct } from "../data/products.js";
+import { getProduct } from "../data/products.js";
 import dayjs from 'https://unpkg.com/dayjs@1.11.10/esm/index.js';
 import { cart } from "../data/cart-class.js";
 import { getOrder } from "../data/orders.js";
 
 
-async function renderTrackingPage(){
-   await loadProductsFetch();
+function renderTrackingPage(){
 
    const url = new URL(window.location.href);
    const orderId = url.searchParams.get('orderId');

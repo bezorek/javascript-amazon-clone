@@ -4,7 +4,6 @@ import { getDeliveryOption } from "../../data/deliveryOptions.js";
 import { formatCurrency } from "../utils/money.js";
 import { addOrder } from "../../data/orders.js";
 import { cart } from "../../data/cart-class.js";
-import { renderOrderSummary } from "./orderSummary.js";
 
 export function renderPaymentSummary(){
     let productPriceCents = 0;
