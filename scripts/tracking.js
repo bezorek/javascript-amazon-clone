@@ -1,29 +1,30 @@
 import { getProduct } from "../data/products.js";
 import dayjs from 'https://unpkg.com/dayjs@1.11.10/esm/index.js';
 import { cart } from "../data/cart-class.js";
-import { getOrder } from "../data/orders.js";
+import { getOrder, getOrders } from "../data/orders.js";
 
 
-function renderTrackingPage(){
+async function renderTrackingPage(){
 
    const url = new URL(window.location.href);
    const orderId = url.searchParams.get('orderId');
    const productId = url.searchParams.get('productId');
 
    const matchingOrder = getOrder(orderId);
-   const productDetails = getProduct(productId);
+   console.log(matchingOrder)
    
    let matchingProduct;
 
-   matchingOrder.products.forEach((product) => {
+   matchingOrder.items.forEach((product) => {
       if(product.productId === productId){
          matchingProduct = product;
       }
    });
+   console.log(matchingProduct)
 
    let currentTime = dayjs();
-   const orderTime = dayjs(matchingOrder.orderTime);
-   const deliveryTime = dayjs(matchingProduct.estimatedDeliveryTime);
+   const orderTime = dayjs(matchingOrder.orderDate);
+   const deliveryTime = dayjs(matchingProduct.deliveryDate);
    let passedTime = ((currentTime - orderTime)/(deliveryTime - orderTime))*100;
    const deliveredMessage = currentTime < deliveryTime ? 'Arriving on' : 'Delivered on';
 
@@ -33,18 +34,18 @@ function renderTrackingPage(){
         </a>
 
         <div class="delivery-date">
-          ${deliveredMessage} ${dayjs(matchingProduct.estimatedDeliveryTime).format('dddd, MMMM D')}
+          ${deliveredMessage} ${dayjs(matchingProduct.deliveryDate).format('dddd, MMMM D')}
         </div>
 
         <div class="product-info">
-          ${productDetails.name}
+          ${matchingProduct.name}
         </div>
 
         <div class="product-info">
           Quantity: ${matchingProduct.quantity}
         </div>
 
-        <img class="product-image" src="${productDetails.image}">
+        <img class="product-image" src="${matchingProduct.image}">
 
         <div class="progress-labels-container">
           <div class="progress-label ${passedTime < 50 ? 'current-status' : ''}">
