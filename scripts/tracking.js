@@ -11,7 +11,6 @@ async function renderTrackingPage(){
    const productId = url.searchParams.get('productId');
 
    const matchingOrder = getOrder(orderId);
-   console.log(matchingOrder)
    
    let matchingProduct;
 
@@ -20,12 +19,13 @@ async function renderTrackingPage(){
          matchingProduct = product;
       }
    });
-   console.log(matchingProduct)
 
    let currentTime = dayjs();
    const orderTime = dayjs(matchingOrder.orderDate);
+   console.log(orderTime)
    const deliveryTime = dayjs(matchingProduct.deliveryDate);
    let passedTime = ((currentTime - orderTime)/(deliveryTime - orderTime))*100;
+   console.log(passedTime)
    const deliveredMessage = currentTime < deliveryTime ? 'Arriving on' : 'Delivered on';
 
    let html = `
@@ -48,13 +48,13 @@ async function renderTrackingPage(){
         <img class="product-image" src="${matchingProduct.image}">
 
         <div class="progress-labels-container">
-          <div class="progress-label ${passedTime < 50 ? 'current-status' : ''}">
+          <div class="progress-label ${(passedTime < 50 && passedTime >= 0) ? 'current-status' : ''}">
             Preparing
           </div>
           <div class="progress-label ${(passedTime >= 50 && passedTime < 100) ? 'current-status' : ''}">
             Shipped
           </div>
-          <div class="progress-label ${passedTime >= 100 ? 'current-status' : ''}">
+          <div class="progress-label ${(passedTime >= 100  || passedTime < 0) ? 'current-status' : ''}">
             Delivered
           </div>
         </div>
@@ -66,7 +66,7 @@ async function renderTrackingPage(){
 
    document.querySelector('.js-order-tracking').innerHTML= html;
    document.querySelector('.js-cart-quantity').innerHTML= cart.updateCartQuantity();
-   document.querySelector('.js-progress-bar').style.width = `${passedTime}%`;
+   document.querySelector('.js-progress-bar').style.width = `${passedTime < 0 ? 100 : passedTime}%`;
 }
 
 renderTrackingPage();
