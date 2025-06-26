@@ -1,13 +1,14 @@
 const express = require("express");
 const cors = require("cors");
 const pool = require("./db");
+const bcrypt = require('bcrypt');
+const jwt    = require('jsonwebtoken');
 require("dotenv").config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Endpoint: GET /products
 app.get("/products", async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM product");
@@ -68,7 +69,6 @@ app.get("/orders", async (req, res) => {
       ORDER BY o.order_date DESC
     `);
 
-    // Grupuj zamówienia po order_id
     const ordersMap = {};
 
     for (const row of result.rows) {
@@ -151,6 +151,71 @@ app.delete("/order/:id", async (req, res) => {
   } finally {
     pool.release();
   }
+});
+
+app.post("/register", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).send("Email i hasło są wymagane"); 
+    }
+
+    const userRes = await pool.query(
+        'SELECT id FROM users WHERE email = $1',
+        [email]
+    );
+
+    if (userRes.rowCount === 0) {
+        return res.status(401).json({ message: "Email jest już powiązany z zarejestrowanym użytkownikiem" });
+    }
+
+    const passwd = bcrypt.hashSync(password, 10);
+    const uuid = crypto.randomUUID();
+    await pool.query(
+      'INSERT INTO users (id, email, password) VALUES ($1, $2, $3) RETURNING id',
+      [uuid, email, passwd]
+    );
+
+    res.status(201).send("Użytkownik zarejestrowany pomyślnie");
+  } catch (err) {
+    console.error("Wystąpił błąd podczas rejestracji:", err);
+    res.status(500).send("Błąd serwera");
+  }
+});
+
+app.post("/login", async (req, res) => {
+    const { email, password } = req.body;
+    if (!email || !password) {
+        return res.status(400).json({ message: "Email i hasło są wymagane" });
+    }
+
+    try {
+        const userRes = await pool.query(
+            'SELECT id, email, password_hash FROM users WHERE email = $1',
+            [email]
+        );
+        if (userRes.rowCount === 0) {
+            return res.status(401).json({ message: "Niepoprawne dane" });
+        }
+        const user = userRes.rows[0];
+
+        const match = await bcrypt.compare(password, user.password_hash);
+        if (!match) {
+            return res.status(401).json({ message: "Niepoprawne dane" });
+        }
+
+        const token = jwt.sign(
+            { userId: user.id, email: user.email },
+            process.env.JWT_SECRET,
+            { expiresIn: "1h" }
+        );
+
+        res.json({ token });
+    } catch (err) {
+        console.error("Błąd logowania:", err);
+        res.status(500).json({ message: "Błąd serwera" });
+    }
 });
 
 const PORT = process.env.PORT || 5000;
