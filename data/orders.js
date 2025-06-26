@@ -1,5 +1,6 @@
 import { getProduct } from "./products.js";
 import dayjs from "https://unpkg.com/dayjs@1.11.10/esm/index.js";
+import { renderPlacedOrderSummary } from "../scripts/orders.js";
 
   const orders = await getOrders();
 
@@ -83,5 +84,29 @@ export function removeProductFromOrder(orderId, productId) {
   } catch (err) {
     console.error("Błąd podczas pobierania zamówień:", err);
     return [];
+  }
+}
+
+export async function deleteOrder(orderId) {
+  try {
+    const res = await fetch(`http://localhost:5000/order/${orderId}`, {
+      method: 'DELETE'
+    });
+
+    if(res.status === 400){
+      const errorMessage = await res.text();
+      alert(errorMessage);
+      return;
+    }
+
+    if (!res.ok) {
+      throw new Error('Nie udało się usunąć zamówienia');
+    }
+    
+    alert('Zamówienie zostało zwrócone.')
+    await renderPlacedOrderSummary();
+  } catch (err) {
+    console.error(err);
+    alert("Wystąpił błąd podczas usuwania zamówienia.");
   }
 }

@@ -58,6 +58,9 @@ function renderProductsGrid(products) {
         button.addEventListener('click', () => {
             const productId = button.dataset.productId;
             const select = document.querySelector(`.js-select-value-${productId}`);
+            if (select.value === 'Brak'){
+                return;
+            }
             const selectedValue = Number(select?.value ?? 1);
             cart.addToCart(productId, selectedValue);
             document.querySelector('.js-cart-quantity').innerHTML = cart.updateCartQuantity();

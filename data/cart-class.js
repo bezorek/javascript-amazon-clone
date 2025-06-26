@@ -110,7 +110,6 @@ class Cart{
         try{
             const response = await fetch('https://supersimplebackend.dev/cart');
             const data = await response.text();
-            console.log(data);
         }catch(error){
 
         }
@@ -121,9 +120,6 @@ class Cart{
 export const cart = new Cart('cart');
 const businessCart = new Cart('cart-business');
 
-console.log(cart);
-console.log(businessCart);
-console.log(businessCart instanceof Cart);
 
 
 
