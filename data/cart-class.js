@@ -118,7 +118,6 @@ class Cart{
 }
 
 export const cart = new Cart('cart');
-const businessCart = new Cart('cart-business');
 
 
 

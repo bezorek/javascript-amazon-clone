@@ -2,7 +2,7 @@ import { getProduct } from "./products.js";
 import dayjs from "https://unpkg.com/dayjs@1.11.10/esm/index.js";
 import { renderPlacedOrderSummary } from "../scripts/orders.js";
 
-  const orders = await getOrders();
+const orders = await getOrders();
 
 export function addOrder(order) {
   orders.unshift(order);
@@ -68,12 +68,20 @@ export function removeProductFromOrder(orderId, productId) {
     });
     orders = newOrderList;
     saveToStorage();
-  } 
+  }
 }
 
- export async function getOrders() {
+export async function getOrders() {
+  const token = localStorage.getItem("authToken");
+
   try {
-    const res = await fetch('http://localhost:5000/orders');
+    const res = await fetch("http://localhost:5000/orders", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+      },
+    });
 
     if (!res.ok) {
       throw new Error(`Błąd serwera: ${res.status}`);
@@ -87,23 +95,40 @@ export function removeProductFromOrder(orderId, productId) {
   }
 }
 
+//  export async function getOrders() {
+//   const token = localStorage.getItem("authToken");
+//   try {
+//     const res = await fetch('http://localhost:5000/orders');
+
+//     if (!res.ok) {
+//       throw new Error(`Błąd serwera: ${res.status}`);
+//     }
+
+//     const orders = await res.json();
+//     return orders;
+//   } catch (err) {
+//     console.error("Błąd podczas pobierania zamówień:", err);
+//     return [];
+//   }
+// }
+
 export async function deleteOrder(orderId) {
   try {
     const res = await fetch(`http://localhost:5000/order/${orderId}`, {
-      method: 'DELETE'
+      method: "DELETE",
     });
 
-    if(res.status === 400){
+    if (res.status === 400) {
       const errorMessage = await res.text();
       alert(errorMessage);
       return;
     }
 
     if (!res.ok) {
-      throw new Error('Nie udało się usunąć zamówienia');
+      throw new Error("Nie udało się usunąć zamówienia");
     }
-    
-    alert('Zamówienie zostało zwrócone.')
+
+    alert("Zamówienie zostało zwrócone.");
     await renderPlacedOrderSummary();
   } catch (err) {
     console.error(err);
