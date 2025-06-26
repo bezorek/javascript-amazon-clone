@@ -81,7 +81,7 @@ app.get("/orders", async (req, res) => {
         delivery_date,
         name,
         image,
-        price
+        price,
       } = row;
 
       if (!ordersMap[order_id]) {
@@ -89,7 +89,7 @@ app.get("/orders", async (req, res) => {
           orderId: order_id,
           orderDate: order_date,
           totalValue: total_value,
-          items: []
+          items: [],
         };
       }
 
@@ -99,7 +99,7 @@ app.get("/orders", async (req, res) => {
         image,
         price,
         quantity,
-        deliveryDate: delivery_date
+        deliveryDate: delivery_date,
       });
     }
 
@@ -108,6 +108,48 @@ app.get("/orders", async (req, res) => {
   } catch (err) {
     console.error("Błąd przy pobieraniu zamówień:", err);
     res.status(500).send("Błąd serwera");
+  }
+});
+
+app.delete("/order/:id", async (req, res) => {
+  const orderId = req.params.id;
+  try {
+    await pool.query("BEGIN");
+    const checkResult = await pool.query(
+      `SELECT * FROM orders_products
+       WHERE order_id = $1 AND delivery_date <= CURRENT_DATE`,
+      [orderId]
+    );
+    if (checkResult.rows.length > 0) {
+      await pool.query("ROLLBACK");
+      return res
+        .status(400)
+        .send("Nie można zwrócić zamówienia — produkty już dostarczone.");
+    }
+
+    const productsResult = await pool.query(
+      `SELECT product_id, quantity FROM orders_products WHERE order_id = $1`,
+      [orderId]
+    );
+
+    for (const item of productsResult.rows) {
+      await pool.query(
+        `UPDATE product
+         SET quantity = quantity + $1
+         WHERE id = $2`,
+        [item.quantity, item.product_id]
+      );
+    }
+
+    await pool.query('DELETE FROM "order" WHERE id = $1', [orderId]);
+    await pool.query("COMMIT");
+
+    res.status(200).send("Zamówienie usunięte");
+  } catch (err) {
+    console.error("Błąd przy usuwaniu zamówienia:", err);
+    res.status(500).send("Błąd serwera przy usuwaniu zamówienia");
+  } finally {
+    pool.release();
   }
 });
 
