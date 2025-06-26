@@ -1,4 +1,8 @@
-import { getOrders, removeProductFromOrder } from "../data/orders.js";
+import {
+  deleteOrder,
+  getOrders,
+  removeProductFromOrder,
+} from "../data/orders.js";
 import { getProduct } from "../data/products.js";
 import dayjs from "https://unpkg.com/dayjs@1.11.10/esm/index.js";
 import { cart } from "../data/cart-class.js";
@@ -20,13 +24,16 @@ export async function renderPlacedOrderSummary() {
               </div>
               <div class="order-total">
                 <div class="order-header-label">Total:</div>
-                <div>$${(order.totalValue)}</div>
+                <div>$${order.totalValue}</div>
               </div>
             </div>
 
             <div class="order-header-right-section">
               <div class="order-header-label">Order ID:</div>
               <div>${order.orderId}</div>
+              <button class="delete-order-button button-secondary js-cancel-order-button" data-order-id=${
+                order.orderId
+              }>Cancel Order</button>
             </div>
           </div>
 
@@ -39,7 +46,6 @@ export async function renderPlacedOrderSummary() {
   // zabrac product id z order zeby dotrzec do product id z produktu aby pokazac zdjecie/nazwe
   function generateItemsHTML(order) {
     let html = "";
-   console.log(order)
     order.items.forEach((item) => {
       const matchingItem = getProduct(item.productId);
 
@@ -53,9 +59,7 @@ export async function renderPlacedOrderSummary() {
                ${matchingItem.name}
             </div>
             <div class="product-delivery-date">
-               Arriving on: ${dayjs(item.deliveryDate).format(
-                 "MMMM D"
-               )}
+               Arriving on: ${dayjs(item.deliveryDate).format("MMMM D")}
             </div>
             <div class="product-quantity">
                Quantity: ${item.quantity}
@@ -76,23 +80,20 @@ export async function renderPlacedOrderSummary() {
                   Track package
                </button>
             </a>
-               <button class="return-product-button button-secondary js-return-button" data-order-id="${
-                 order.id
-               }" data-product-id="${matchingItem.id}">
-                  Return product
-               </button>
                <dialog class="return-order-container return-modal modal-${
-                 order.id
-               }-${matchingItem.id}">
+                 order.orderId
+               }">
                   <div class="modal-container">
-                     <span>Do you want to return ${matchingItem.name}?</span>
+                     <span>Do you want to return your order (${
+                       order.orderId
+                     }?</span>
                      <div class="return-modal-buttons">
                         <button class="button-primary modal-button js-confirm-button-${
-                          order.id
-                        }-${matchingItem.id}">Yes</button>
+                          order.orderId
+                        }">Yes</button>
                         <button class="button-primary modal-button close-modal-${
-                          order.id
-                        }-${matchingItem.id}">No</button>
+                          order.orderId
+                        }">No</button>
                      </div>
                   </div>
                </dialog>
@@ -128,20 +129,17 @@ export async function renderPlacedOrderSummary() {
     window.location.href = `amazon.html?search=${search}`;
   });
 
-  //RETURN PRODUCT FUNCTION
+  //RETURN ORDER FUNCTION
 
-  document.querySelectorAll(".js-return-button").forEach((button) => {
+  document.querySelectorAll(".js-cancel-order-button").forEach((button) => {
     button.addEventListener("click", () => {
       // modal window to return products
       const orderId = button.dataset.orderId;
-      const productId = button.dataset.productId;
-
-      const modal = document.querySelector(`.modal-${orderId}-${productId}`);
-      const closeButton = document.querySelector(
-        `.close-modal-${orderId}-${productId}`
-      );
+      console.log(orderId);
+      const modal = document.querySelector(`.modal-${orderId}`);
+      const closeButton = document.querySelector(`.close-modal-${orderId}`);
       const confirmButton = document.querySelector(
-        `.js-confirm-button-${orderId}-${productId}`
+        `.js-confirm-button-${orderId}`
       );
       modal.showModal();
       document.body.classList.add("no-scroll");
@@ -165,21 +163,11 @@ export async function renderPlacedOrderSummary() {
       });
 
       confirmButton.addEventListener("click", () => {
-        removeProductFromOrder(orderId, productId);
+        deleteOrder(orderId);
         modal.close();
-        renderPlacedOrderSummary();
-      });
+      }, {once: true});
     });
   });
-
-  //   document.querySelectorAll('.close-modal').forEach((button) => {
-  //    button.addEventListener('click', () => {
-  //       const orderId = button.dataset.orderId;
-  //       const productId = button.dataset.productId;
-  //       const modal = document.querySelector(`.modal-${orderId}-${productId}`);
-  //       modal.close();
-  //       });
-  //   });
 }
 
 renderPlacedOrderSummary();
