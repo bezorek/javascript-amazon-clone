@@ -1,21 +1,24 @@
-import { getProducts, filterProducts } from '../data/products.js';
-import { cart } from '../data/cart-class.js';
+import { getProducts, filterProducts } from "../data/products.js";
+import { cart } from "../data/cart-class.js";
 
 const products = getProducts();
 renderProductsGrid(filterProducts(products));
 
 function renderProductsGrid(products) {
-    let productsHTML = '';
+  let productsHTML = "";
 
-    products.forEach(product => {
-        const quantityOptions = Number(product.quantity) > 0
-            ? Array.from({ length: Number(product.quantity) }, (_, i) => `
-                <option${i === 0 ? ' selected' : ''}>${i + 1}</option>
-            `).join('')
-            : '<option disabled selected>Brak</option>';
+  products.forEach((product) => {
+    const quantityOptions =
+      Number(product.quantity) > 0
+        ? Array.from(
+            { length: Number(product.quantity) },
+            (_, i) => `
+                <option${i === 0 ? " selected" : ""}>${i + 1}</option>
+            `
+          ).join("")
+        : "<option disabled selected>Brak</option>";
 
-
-        productsHTML += `
+    productsHTML += `
             <div class="product-container">
                 <div class="product-image-container">
                     <img class="product-image" src="${product.image}">
@@ -30,7 +33,9 @@ function renderProductsGrid(products) {
                 </div>
 
                 <div class="product-quantity-container">
-                    <select class="quantity-select js-select-value-${product.id}">
+                    <select class="quantity-select js-select-value-${
+                      product.id
+                    }">
                         ${quantityOptions}
                     </select>
                 </div>
@@ -50,34 +55,54 @@ function renderProductsGrid(products) {
                 ${product.extraInfoHTML()}
             </div>
         `;
+  });
+
+  document.querySelector(".js-products-grid").innerHTML = productsHTML;
+
+  document.querySelectorAll(".js-add-to-cart").forEach((button) => {
+    button.addEventListener("click", () => {
+      const productId = button.dataset.productId;
+      const select = document.querySelector(`.js-select-value-${productId}`);
+      if (select.value === "Brak") {
+        return;
+      }
+      const selectedValue = Number(select?.value ?? 1);
+      cart.addToCart(productId, selectedValue);
+      document.querySelector(".js-cart-quantity").innerHTML =
+        cart.updateCartQuantity();
     });
+  });
 
-    document.querySelector('.js-products-grid').innerHTML = productsHTML;
+  document.querySelector(".js-cart-quantity").innerHTML =
+    cart.updateCartQuantity();
 
-    document.querySelectorAll('.js-add-to-cart').forEach((button) => {
-        button.addEventListener('click', () => {
-            const productId = button.dataset.productId;
-            const select = document.querySelector(`.js-select-value-${productId}`);
-            if (select.value === 'Brak'){
-                return;
-            }
-            const selectedValue = Number(select?.value ?? 1);
-            cart.addToCart(productId, selectedValue);
-            document.querySelector('.js-cart-quantity').innerHTML = cart.updateCartQuantity();
-        });
-    });
+  document.querySelector(".js-search-button").addEventListener("click", () => {
+    const search = document.querySelector(".js-search-bar").value;
+    window.location.href = `amazon.html?search=${search}`;
+  });
 
-    document.querySelector('.js-cart-quantity').innerHTML = cart.updateCartQuantity();
-
-    document.querySelector('.js-search-button').addEventListener('click', () => {
-        const search = document.querySelector('.js-search-bar').value;
+  document
+    .querySelector(".js-search-bar")
+    .addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+        const search = document.querySelector(".js-search-bar").value;
         window.location.href = `amazon.html?search=${search}`;
+      }
     });
 
-    document.querySelector('.js-search-bar').addEventListener('keydown', function (event) {
-    if (event.key === 'Enter') {
-        const search = document.querySelector('.js-search-bar').value;
-        window.location.href = `amazon.html?search=${search}`;
+  document.addEventListener("DOMContentLoaded", () => {
+    const logoutBtn = document.querySelector(".logout-button");
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+
+        // Wyloguj: usuń token i dane użytkownika
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("authEmail");
+
+        // Przekierowanie do strony logowania
+        window.location.href = "login.html";
+      });
     }
-});
+  });
 }

@@ -1,8 +1,4 @@
-import {
-  deleteOrder,
-  getOrders,
-  removeProductFromOrder,
-} from "../data/orders.js";
+import { deleteOrder, getOrders } from "../data/orders.js";
 import { getProduct } from "../data/products.js";
 import dayjs from "https://unpkg.com/dayjs@1.11.10/esm/index.js";
 import { cart } from "../data/cart-class.js";
@@ -162,11 +158,31 @@ export async function renderPlacedOrderSummary() {
         }
       });
 
-      confirmButton.addEventListener("click", () => {
-        deleteOrder(orderId);
-        modal.close();
-      }, {once: true});
+      confirmButton.addEventListener(
+        "click",
+        () => {
+          deleteOrder(orderId);
+          modal.close();
+        },
+        { once: true }
+      );
     });
+  });
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const logoutBtn = document.querySelector(".logout-button");
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+
+        // Wyloguj: usuń token i dane użytkownika
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("authEmail");
+
+        // Przekierowanie do strony logowania
+        window.location.href = "login.html";
+      });
+    }
   });
 }
 

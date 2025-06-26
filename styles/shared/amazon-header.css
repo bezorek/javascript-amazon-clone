@@ -97,14 +97,24 @@
 }
 
 .amazon-header-right-section {
-  width: 180px;
+  width: 270px;
   flex-shrink: 0;
   display: flex;
   justify-content: end;
 }
 
-.orders-link {
+.orders-link,
+.logout-link {
   color: white;
+}
+.logout-link {
+  display: flex;
+  align-items: center;
+}
+
+.sign-out-icon{
+  margin-right: 2px;
+  font-size: 18px;
 }
 
 .returns-text {
@@ -143,7 +153,7 @@
   position: absolute;
   top: 4px;
   left: 22px;
-  
+
   width: 26px;
   text-align: center;
 }
