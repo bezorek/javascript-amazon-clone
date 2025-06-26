@@ -1,13 +1,32 @@
 const express = require("express");
 const cors = require("cors");
 const pool = require("./db");
-const bcrypt = require('bcrypt');
-const jwt    = require('jsonwebtoken');
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+function authMiddleware(req, res, next) {
+  const authHeader = req.headers["authorization"];
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ message: "Brak tokenu autoryzacyjnego" });
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res
+      .status(401)
+      .json({ message: "Nieautoryzowany - nieprawidłowy token" });
+  }
+}
 
 app.get("/products", async (req, res) => {
   try {
@@ -19,13 +38,14 @@ app.get("/products", async (req, res) => {
   }
 });
 
-app.post("/order", async (req, res) => {
+app.post("/order", authMiddleware, async (req, res) => {
+  const userId = req.user.userId;
   try {
     const { order_id, totalValue, orderDate, items } = req.body;
 
     await pool.query(
-      'INSERT INTO "order" (id, total_value, order_date) VALUES ($1, $2, $3)',
-      [order_id, totalValue, orderDate || new Date()]
+      'INSERT INTO "order" (id, total_value, order_date, user_id) VALUES ($1, $2, $3, $4)',
+      [order_id, totalValue, orderDate || new Date(), userId]
     );
 
     for (const item of items) {
@@ -50,9 +70,11 @@ app.post("/order", async (req, res) => {
   }
 });
 
-app.get("/orders", async (req, res) => {
+app.get("/orders", authMiddleware, async (req, res) => {
+  const userId = req.user.userId;
   try {
-    const result = await pool.query(`
+    const result = await pool.query(
+      `
       SELECT 
         o.id AS order_id,
         o.order_date,
@@ -66,8 +88,11 @@ app.get("/orders", async (req, res) => {
       FROM "order" o
       JOIN orders_products op ON o.id = op.order_id
       JOIN product p ON op.product_id = p.id
+      WHERE o.user_id = $1
       ORDER BY o.order_date DESC
-    `);
+    `,
+      [userId]
+    );
 
     const ordersMap = {};
 
@@ -147,7 +172,7 @@ app.delete("/order/:id", async (req, res) => {
     res.status(200).send("Zamówienie usunięte");
   } catch (err) {
     console.error("Błąd przy usuwaniu zamówienia:", err);
-    res.status(500).send("Błąd serwera przy usuwaniu zamówienia");
+    res.status(500).json({ message: "Błąd serwera przy usuwaniu zamówienia" });
   } finally {
     pool.release();
   }
@@ -158,64 +183,65 @@ app.post("/register", async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).send("Email i hasło są wymagane"); 
+      return res.status(400).send("Email i hasło są wymagane");
     }
 
-    const userRes = await pool.query(
-        'SELECT id FROM users WHERE email = $1',
-        [email]
-    );
+    const userRes = await pool.query("SELECT id FROM users WHERE email = $1", [
+      email,
+    ]);
 
-    if (userRes.rowCount === 0) {
-        return res.status(401).json({ message: "Email jest już powiązany z zarejestrowanym użytkownikiem" });
+    if (userRes.rowCount !== 0) {
+      return res.status(401).json({
+        message: "Email jest już powiązany z zarejestrowanym użytkownikiem",
+      });
     }
 
     const passwd = bcrypt.hashSync(password, 10);
     const uuid = crypto.randomUUID();
     await pool.query(
-      'INSERT INTO users (id, email, password) VALUES ($1, $2, $3) RETURNING id',
+      "INSERT INTO users (id, email, password_hash) VALUES ($1, $2, $3) RETURNING id",
       [uuid, email, passwd]
     );
 
-    res.status(201).send("Użytkownik zarejestrowany pomyślnie");
+    res.status(201).json({ message: "Użytkownik zarejestrowany pomyślnie" });
   } catch (err) {
     console.error("Wystąpił błąd podczas rejestracji:", err);
-    res.status(500).send("Błąd serwera");
+    res.status(500).json({ message: "Błąd serwera" });
   }
 });
 
 app.post("/login", async (req, res) => {
-    const { email, password } = req.body;
-    if (!email || !password) {
-        return res.status(400).json({ message: "Email i hasło są wymagane" });
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ message: "Email i hasło są wymagane" });
+  }
+
+  try {
+    const userRes = await pool.query(
+      "SELECT id, email, password_hash FROM users WHERE email = $1",
+      [email]
+    );
+    if (userRes.rowCount === 0) {
+      return res.status(401).json({ message: "Niepoprawne dane" });
+    }
+    const user = userRes.rows[0];
+
+    const match = await bcrypt.compare(password, user.password_hash);
+    if (!match) {
+      return res.status(401).json({ message: "Niepoprawne dane" });
     }
 
-    try {
-        const userRes = await pool.query(
-            'SELECT id, email, password_hash FROM users WHERE email = $1',
-            [email]
-        );
-        if (userRes.rowCount === 0) {
-            return res.status(401).json({ message: "Niepoprawne dane" });
-        }
-        const user = userRes.rows[0];
+    const token = jwt.sign(
+      { userId: user.id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
 
-        const match = await bcrypt.compare(password, user.password_hash);
-        if (!match) {
-            return res.status(401).json({ message: "Niepoprawne dane" });
-        }
-
-        const token = jwt.sign(
-            { userId: user.id, email: user.email },
-            process.env.JWT_SECRET,
-            { expiresIn: "1h" }
-        );
-
-        res.json({ token });
-    } catch (err) {
-        console.error("Błąd logowania:", err);
-        res.status(500).json({ message: "Błąd serwera" });
-    }
+    res.json({ token });
+  } catch (err) {
+    console.error("Błąd logowania:", err);
+    res.status(500).json({ message: "Błąd serwera" });
+  }
 });
 
 const PORT = process.env.PORT || 5000;
