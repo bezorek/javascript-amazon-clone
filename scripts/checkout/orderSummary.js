@@ -90,7 +90,7 @@ export function renderOrderSummary(){
 
         deliveryOptions.forEach((deliveryOption) =>{
 
-            const priceString = deliveryOption.priceCents === 0 ? 'FREE': `$${formatCurrency(deliveryOption.priceCents)} -`;
+            const priceString = deliveryOption.priceCents === 0 ? 'FREE': `${formatCurrency(deliveryOption.priceCents)} zł -`;
 
             const isChecked = deliveryOption.id === cartItem.deliveryOptionId;
 

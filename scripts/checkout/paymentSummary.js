@@ -31,35 +31,35 @@ export function renderPaymentSummary() {
             <div class="payment-summary-row">
                 <div>Items (${cart.updateCartQuantity()}):</div>
                 <div class="payment-summary-money">
-                $${formatCurrency(productPriceCents)}
+                ${formatCurrency(productPriceCents)} zł
                 </div>
             </div>
 
             <div class="payment-summary-row">
                 <div>Shipping &amp; handling:</div>
                 <div class="payment-summary-money js-total-shipping-price">
-                $${formatCurrency(shippingPriceCents)}
+                ${formatCurrency(shippingPriceCents)} zł
                 </div>
             </div>
 
             <div class="payment-summary-row subtotal-row">
                 <div>Total before tax:</div>
                 <div class="payment-summary-money">
-                $${formatCurrency(totalBeforeTaxCents)}
+                ${formatCurrency(totalBeforeTaxCents)} zł
                 </div>
             </div>
 
             <div class="payment-summary-row">
                 <div>Estimated tax (10%):</div>
                 <div class="payment-summary-money">
-                    $${formatCurrency(taxCents)}
+                    ${formatCurrency(taxCents)} zł
                 </div>
             </div>
 
             <div class="payment-summary-row total-row">
                 <div>Order total:</div>
                 <div class="payment-summary-money js-total-price">
-                    $${formatCurrency(totalCents)}
+                    ${formatCurrency(totalCents)} zł
                 </div>
             </div>
 

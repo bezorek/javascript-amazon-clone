@@ -33,7 +33,7 @@ app.get("/products", async (req, res) => {
     const result = await pool.query("SELECT * FROM product");
     res.json(result.rows);
   } catch (err) {
-    console.error("Błąd w /products:", err); // pełna treść błędu
+    console.error("Błąd w /products:", err);
     res.status(500).send("Błąd serwera");
   }
 });
@@ -72,13 +72,18 @@ app.post("/order", authMiddleware, async (req, res) => {
 
 app.get("/orders", authMiddleware, async (req, res) => {
   const userId = req.user.userId;
+  const userEmail = req.user.email;
+
   try {
+    const isAdmin = userEmail === "admin@admin.com";
+
     const result = await pool.query(
       `
       SELECT 
         o.id AS order_id,
         o.order_date,
         o.total_value,
+        o.user_id,
         op.product_id,
         op.quantity,
         op.delivery_date,
@@ -88,10 +93,10 @@ app.get("/orders", authMiddleware, async (req, res) => {
       FROM "order" o
       JOIN orders_products op ON o.id = op.order_id
       JOIN product p ON op.product_id = p.id
-      WHERE o.user_id = $1
+      ${isAdmin ? "" : "WHERE o.user_id = $1"}
       ORDER BY o.order_date DESC
     `,
-      [userId]
+      isAdmin ? [] : [userId]
     );
 
     const ordersMap = {};
